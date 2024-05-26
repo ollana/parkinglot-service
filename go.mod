@@ -5,11 +5,13 @@ go 1.20
 require (
 	github.com/pulumi/pulumi-aws-apigateway/sdk/v2 v2.0.0
 	github.com/pulumi/pulumi-aws/sdk/v6 v6.5.0
+	github.com/pulumi/pulumi-docker/sdk/v3 v3.6.1
 	github.com/pulumi/pulumi/sdk/v3 v3.96.1
 )
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect

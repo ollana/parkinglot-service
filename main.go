@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-
 	"github.com/pulumi/pulumi-aws-apigateway/sdk/v2/go/apigateway"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/lambda"
@@ -15,7 +14,7 @@ func main() {
 		policy, err := json.Marshal(map[string]interface{}{
 			"Version": "2012-10-17",
 			"Statement": []map[string]interface{}{
-				map[string]interface{}{
+				{
 					"Action": "sts:AssumeRole",
 					"Effect": "Allow",
 					"Principal": map[string]interface{}{
@@ -28,7 +27,7 @@ func main() {
 			return err
 		}
 
-		role, err := iam.NewRole(ctx, "role", &iam.RoleArgs{
+		role, err := iam.NewRole(ctx, "parkinglot-service-role", &iam.RoleArgs{
 			AssumeRolePolicy: pulumi.String(policy),
 			ManagedPolicyArns: pulumi.StringArray{
 				iam.ManagedPolicyAWSLambdaBasicExecutionRole,
@@ -39,23 +38,22 @@ func main() {
 		}
 
 		// A Lambda function to invoke
-		fn, err := lambda.NewFunction(ctx, "fn", &lambda.FunctionArgs{
-			Runtime: pulumi.String("python3.9"),
-			Handler: pulumi.String("handler.handler"),
+		fn, err := lambda.NewFunction(ctx, "parkinglot-service", &lambda.FunctionArgs{
+			Runtime: pulumi.String("provided.al2"),
+			Handler: pulumi.String("bootstrap"),
 			Role:    role.Arn,
-			Code:    pulumi.NewFileArchive("./function"),
+			Code:    pulumi.NewFileArchive("./handler/bootstrap.zip"),
 		})
 		if err != nil {
 			return err
 		}
 
 		// A REST API to route requests to HTML content and the Lambda function
-		localPath := "www"
-		method := apigateway.MethodGET
-		api, err := apigateway.NewRestAPI(ctx, "api", &apigateway.RestAPIArgs{
+		method := apigateway.MethodPOST
+		api, err := apigateway.NewRestAPI(ctx, "parkinglot-service-api", &apigateway.RestAPIArgs{
 			Routes: []apigateway.RouteArgs{
-				apigateway.RouteArgs{Path: "/", LocalPath: &localPath},
-				apigateway.RouteArgs{Path: "/date", Method: &method, EventHandler: fn},
+				{Path: "/entry", Method: &method, EventHandler: fn},
+				{Path: "/exit", Method: &method, EventHandler: fn},
 			},
 		})
 		if err != nil {
