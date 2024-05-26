@@ -42,7 +42,7 @@ func main() {
 			Runtime: pulumi.String("provided.al2"),
 			Handler: pulumi.String("bootstrap"),
 			Role:    role.Arn,
-			Code:    pulumi.NewFileArchive("./handler/bootstrap.zip"),
+			Code:    pulumi.NewFileArchive("bootstrap.zip"),
 		})
 		if err != nil {
 			return err

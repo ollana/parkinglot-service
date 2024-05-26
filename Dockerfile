@@ -1,19 +1,22 @@
-# Start from the latest golang base image
+# Use golang base image to get the Go environment
 FROM golang:1.20 as builder
 
-# Set the current working directory inside the container
+# Install zip utility and bash which is already there in official golang image
+RUN apt-get update && \
+    apt-get install -y zip && \
+    apt-get clean
+
+# Set the shell to bash
+SHELL ["/bin/bash", "-c"]
+
 WORKDIR /app
 
-COPY handler/go.mod handler/go.sum ./
+# Copy our application code into the container's app directory
+COPY . .
 
-RUN go mod download
+# Run unit tests
+RUN make unit_test
 
-COPY handler/. .
+# Build the application binary named 'bootstrap' so it can be run in Lambda
+RUN make package
 
-# Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main ./main.go
-
-FROM public.ecr.aws/lambda/provided:al2
-COPY --from=builder /app/main /var/task/
-
-CMD [ "main" ]
