@@ -23,7 +23,8 @@ Since the service is stateless, DynamoDB is used to store the parking lot data.
 * The service does not delete the entry from DynamoDB after the car exits the parking lot. If exit is called again with the same ticket id, the service will return the same details as before.
 
 
-## Deployment steps - using makefile 
+## Deployment steps
+Using makefile 
 #### Prerequisites
 - [make](https://www.incredibuild.com/integrations/gnu-make) 
 - [golang 1.20+](https://go.dev/doc/install) 
