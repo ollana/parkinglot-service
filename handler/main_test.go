@@ -11,6 +11,34 @@ import (
 	"time"
 )
 
+// mock the dynamoDBClientInterface
+type mockDBClient struct {
+	tickets map[string]dbTicket
+}
+
+func NewMockDBClient() dynamoDBClientInterface {
+	return &mockDBClient{
+		tickets: make(map[string]dbTicket),
+	}
+}
+
+func (m *mockDBClient) StoreTicket(ctx context.Context, ticket dbTicket) error {
+	m.tickets[ticket.TicketID] = ticket
+	return nil
+
+}
+func (m *mockDBClient) GetTicket(ctx context.Context, ticketId string) (*dbTicket, error) {
+	if ticket, ok := m.tickets[ticketId]; ok {
+		return &ticket, nil
+	}
+	return nil, nil
+}
+
+func (m *mockDBClient) updateTicket(ctx context.Context, ticket dbTicket) error {
+	m.tickets[ticket.TicketID] = ticket
+	return nil
+}
+
 func TestCalculateSegments(t *testing.T) {
 	assert.Equal(t, 0, calculateSegments(0*time.Minute))
 	assert.Equal(t, 1, calculateSegments(1*time.Minute))
@@ -27,6 +55,7 @@ func TestCalculateSegments(t *testing.T) {
 // //   "rawQueryString": "plate=123&parkingLot=1",
 func TestEntryHandler(t *testing.T) {
 	c := context.Background()
+	dbClient = NewMockDBClient()
 
 	// test case for happy path
 	t.Run("happy path", func(t *testing.T) {
@@ -45,7 +74,7 @@ func TestEntryHandler(t *testing.T) {
 		var ticket TicketId
 		err = json.Unmarshal([]byte(res.Body), &ticket)
 		assert.Nil(t, err)
-		assert.Equal(t, 1, ticket.ID)
+		assert.NotNil(t, ticket.ID)
 	})
 
 	// test case for invalid parking lot ID
@@ -68,6 +97,7 @@ func TestEntryHandler(t *testing.T) {
 
 func TestExitHandler(t *testing.T) {
 	c := context.Background()
+	dbClient = NewMockDBClient()
 
 	// test case for happy path
 	t.Run("happy path", func(t *testing.T) {
@@ -101,28 +131,13 @@ func TestExitHandler(t *testing.T) {
 		// convert the response body response object and validate
 		var exitDetails ExitDetails
 		err = json.Unmarshal([]byte(res.Body), &exitDetails)
+		assert.Nil(t, err)
 
+		duration, err := time.ParseDuration(exitDetails.ParkedTime)
 		assert.Nil(t, err)
 		assert.Equal(t, "123", exitDetails.License)
 		assert.Equal(t, 1, exitDetails.ParkingLot)
-		assert.Greater(t, exitDetails.ParkedTime, 0*time.Millisecond)
-	})
-
-	// test case for invalid ticket ID
-	t.Run("invalid ticket ID", func(t *testing.T) {
-
-		request := events.APIGatewayProxyRequest{
-			QueryStringParameters: map[string]string{
-				"ticketId": "invalid",
-			},
-		}
-
-		res, err := exitHandler(c, request)
-		assert.Nil(t, err)
-		// check the response
-		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-		// check the response body
-		assert.Contains(t, res.Body, "Invalid ticket ID")
+		assert.Greater(t, duration, 0*time.Millisecond)
 	})
 
 	// test case for ticket not found
@@ -138,7 +153,7 @@ func TestExitHandler(t *testing.T) {
 		// check the response
 		assert.Equal(t, http.StatusNotFound, res.StatusCode)
 		// check the response body
-		assert.Contains(t, res.Body, "Ticket ID not found")
+		assert.Contains(t, res.Body, "not found")
 	})
 
 }

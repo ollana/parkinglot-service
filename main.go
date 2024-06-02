@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/pulumi/pulumi-aws-apigateway/sdk/v2/go/apigateway"
+	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/dynamodb"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/lambda"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -10,6 +11,24 @@ import (
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
+
+		// Create a new DynamoDB table
+		_, err := dynamodb.NewTable(ctx, "tickets", &dynamodb.TableArgs{
+			Attributes: dynamodb.TableAttributeArray{
+				&dynamodb.TableAttributeArgs{
+					Name: pulumi.String("TicketID"),
+					Type: pulumi.String("S"),
+				},
+			},
+			BillingMode:   pulumi.String("PAY_PER_REQUEST"),
+			HashKey:       pulumi.String("TicketID"),
+			Name:          pulumi.String("tickets"),
+			StreamEnabled: pulumi.Bool(false),
+		})
+		if err != nil {
+			return err
+		}
+
 		// An execution role to use for the Lambda function
 		policy, err := json.Marshal(map[string]interface{}{
 			"Version": "2012-10-17",
@@ -31,6 +50,7 @@ func main() {
 			AssumeRolePolicy: pulumi.String(policy),
 			ManagedPolicyArns: pulumi.StringArray{
 				iam.ManagedPolicyAWSLambdaBasicExecutionRole,
+				iam.ManagedPolicyAmazonDynamoDBFullAccess,
 			},
 		})
 		if err != nil {
