@@ -29,10 +29,10 @@ type TicketId struct {
 
 // ExitDetails represents the details returned on exit.
 type ExitDetails struct {
-	License    string  `json:"license"`
-	ParkedTime string  `json:"parkedTime"`
-	ParkingLot int     `json:"parkingLot"`
-	Charge     float64 `json:"charge"`
+	License    string `json:"license"`
+	ParkedTime string `json:"parkedTime"`
+	ParkingLot int    `json:"parkingLot"`
+	Charge     string `json:"charge"`
 }
 
 // entryHandler generates a new ticket for a car entering the parking lot.
@@ -120,7 +120,7 @@ func exitHandler(ctx context.Context, request events.APIGatewayProxyRequest) (ev
 		License:    ticket.License,
 		ParkedTime: ticket.ParkedTime.Round(time.Second).String(),
 		ParkingLot: ticket.ParkingLot,
-		Charge:     ticket.Charge,
+		Charge:     fmt.Sprintf("$%.1f", ticket.Charge),
 	}
 
 	jsonResp, err := json.Marshal(details)

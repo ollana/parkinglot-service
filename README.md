@@ -19,10 +19,25 @@ I chose a serverless solution for the following reasons:
 
 
 Additional assumptions:
+- The ticket if is a UUID. Example for response for `/entry`:
+```json
+{
+    "ticketId": "1234"
+}
+```
+- The exit ticket details have human-readable format for time and charge. Example for response for `/exit`: 
+```json
+{
+    "licensePlate": "123-123-123",
+    "parkedTime": "1h12m1s",
+    "parkingLotId": "382",
+    "charge": "$12.5"
+}
+```
 - Charge is calculated based on 15 minutes increments rounded up.
+- Ticket information is never deleted. After a car exits the parking lot, if exit is called again with the same ticket id, the service will return the same details as before.
 - The service is not responsible for validating the license plate format, nor if the license plate is already in the parking lot.
 - Possible race conditions are not handled. For example, if two requests are made with the same ticket id, the service will return the details of the first request.
-- Ticket information is never deleted. After the car exits the parking lot, if exit is called again with the same ticket id, the service will return the same details as before.
 
 
 
