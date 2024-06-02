@@ -30,7 +30,7 @@ Using makefile
 - [golang 1.20+](https://go.dev/doc/install) 
 - zip
 - [pulumi 3.0.1+](https://www.pulumi.com/docs/install/)
-- aws credentials setup to `pulumi` profile
+- aws credentials setup to a profile named `pulumi`
 
 #### Steps
 1. login to pulumi
@@ -56,7 +56,7 @@ Then you can deploy the service using pulumi.
 - [docker](https://docs.docker.com/get-docker/) 
 - [golang 1.20+](https://go.dev/doc/install)
 - [pulumi 3.0.1+](https://www.pulumi.com/docs/install/)
-- aws credentials setup to `pulumi` profile
+- aws credentials setup to a profile named `pulumi` 
 
 1. login to pulumi
 ``` bash
