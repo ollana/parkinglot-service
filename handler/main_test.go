@@ -123,6 +123,8 @@ func TestExitHandler(t *testing.T) {
 			},
 		}
 
+		time.Sleep(1 * time.Second)
+
 		res, err = exitHandler(c, request)
 		// check the response
 		assert.Nil(t, err)

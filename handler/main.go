@@ -115,11 +115,10 @@ func exitHandler(ctx context.Context, request events.APIGatewayProxyRequest) (ev
 			return apiResponse(http.StatusInternalServerError, "Failed to update ticket exit")
 		}
 	}
-
 	// return the ticket exit details
 	details := ExitDetails{
 		License:    ticket.License,
-		ParkedTime: ticket.ParkedTime.String(),
+		ParkedTime: ticket.ParkedTime.Round(time.Second).String(),
 		ParkingLot: ticket.ParkingLot,
 		Charge:     ticket.Charge,
 	}
