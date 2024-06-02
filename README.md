@@ -7,6 +7,7 @@
 
 The service is implemented in [Golang](https://go.dev/), and [Pulumi](https://www.pulumi.com/) is used to deploy the service to AWS Lambda. 
 I assume the service will have idle time when no cars are entering or exiting the parking lot, I also expect high traffic during peak hours when many cars are expected to enter and leave the parking lot at the same time.
+Since the service is stateless, DynamoDB is used to store the parking lot data.
 
 I chose a serverless solution for the following reasons:
 
@@ -17,10 +18,12 @@ I chose a serverless solution for the following reasons:
 - No Server Management: Lambda eliminates the need to manage servers. AWS handles all the operational aspects, including provisioning, maintaining, and scaling the infrastructure.
 
 
-Since the service is stateless, DynamoDB is used to store the parking lot data. 
-* Once a car enters the parking lot, the service stores the entry time, license plate, and parking lot id in DynamoDB.
-* When the car exits the parking lot, the service retrieves the entry time from DynamoDB, calculates the total parked time, and charges the car based on the parked time.
-* The service does not delete the entry from DynamoDB after the car exits the parking lot. If exit is called again with the same ticket id, the service will return the same details as before.
+Additional assumptions:
+- Charge is calculated based on 15 minutes increments rounded up.
+- The service is not responsible for validating the license plate format, nor if the license plate is already in the parking lot.
+- Possible race conditions are not handled. For example, if two requests are made with the same ticket id, the service will return the details of the first request.
+- Ticket information is never deleted. After the car exits the parking lot, if exit is called again with the same ticket id, the service will return the same details as before.
+
 
 
 ## Deployment steps
