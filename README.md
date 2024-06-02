@@ -17,14 +17,17 @@ I chose a serverless solution for the following reasons:
 - No Server Management: Lambda eliminates the need to manage servers. AWS handles all the operational aspects, including provisioning, maintaining, and scaling the infrastructure.
 
 
-Since the service is stateless, DynamoDB is used to store the parking lot data. TODO: Implement DynamoDB
+Since the service is stateless, DynamoDB is used to store the parking lot data. 
+* Once a car enters the parking lot, the service stores the entry time, license plate, and parking lot id in DynamoDB.
+* When the car exits the parking lot, the service retrieves the entry time from DynamoDB, calculates the total parked time, and charges the car based on the parked time.
+* The service does not delete the entry from DynamoDB after the car exits the parking lot. If exit is called again with the same ticket id, the service will return the same details as before.
 
 
-## Deployment steps
-### Option 1 - Using makefile 
+## Deployment steps - using makefile 
 #### Prerequisites
 - [make](https://www.incredibuild.com/integrations/gnu-make) 
 - [golang 1.20+](https://go.dev/doc/install) 
+- zip
 - [pulumi 3.0.1+](https://www.pulumi.com/docs/install/)
 - aws credentials setup to `pulumi` profile
 
@@ -42,9 +45,15 @@ make deploy
 make destroy
 ```
 
-### Option 2 - Using docker image 
+
+### Alternative deployment option - using docker image 
+This will build the necessary artifacts in a docker container and copy the artifacts to the host machine.
+
+Then you can deploy the service using pulumi.
+
 #### Prerequisites
 - [docker](https://docs.docker.com/get-docker/) 
+- [golang 1.20+](https://go.dev/doc/install)
 - [pulumi 3.0.1+](https://www.pulumi.com/docs/install/)
 - aws credentials setup to `pulumi` profile
 
@@ -68,9 +77,15 @@ pulumi up
 pulumi destroy
 ```
 
+### Service endpoint
+The service url is outputted after the pulumi deployment.
 
-### Open questions:
-- is it ok to use makefile for deployment?
-- is it ok to assume that grader has golang and make already set up? if not, I can provide an image building all necessary files that has to be run before pulumi deployment
-- is it ok to assume that once exit is called we no longer store the ticket details?
-- what is the unit of parked time? can it be returned as unix duration?
+For example:
+```
+Outputs:
+    url: "https://xxxx.execute-api.us-west-2.amazonaws.com/stage/"
+```
+The service has the following endpoints:
+- POST /entry
+- POST /exit
+as described in the [assignment details](ASSIGNMENT-README.md#assignment)
